@@ -1,0 +1,41 @@
+energy_data_repo/
+│
+├── .env.example                # Example for secrets (copy to .env)
+├── config.yaml                 # Main configuration for sources and paths
+│
+├── data/                       # (Gitignored) The Data Lake
+│   ├── bronze/                 # Raw, untouched data from sources
+│   ├── silver/                 # Cleaned, standardized, single-source tables
+│   └── gold/                   # Joined, aggregated, business-ready tables
+│
+├── notebooks/                  # Jupyter notebooks for exploration and analysis
+│
+├── src/
+│   ├── __init__.py
+│   ├── main.py                 # CLI entry point (using Click/Typer)
+│   │
+│   ├── connectors/             # EXTRACT & LOAD: Connects to APIs and loads to Bronze
+│   │   ├── base.py             # Abstract BaseConnector interface
+│   │   └── entsoe.py           # Self-contained connector for ENTSO-E
+│   │
+│   ├── transformers/           # TRANSFORM: Python logic for Silver & Gold layers
+│   │   ├── parsers/            # Transforming XMLs
+│   │   │   └── entsoe_parser.py
+│   │   ├── staging/            # Bronze -> Silver transformations
+│   │   │   └── stg_entsoe_generation.py
+│   │   └── marts/              # Silver -> Gold transformations
+│   │       └── fct_daily_market_summary.py
+│   │
+│   ├── core/                   # Core application services
+│   │   ├── orchestrator.py     # Logic for running transformation jobs in order
+│   │   └── logging.py          # Centralized logging setup
+│   │
+│   └── storage/                # Generic storage clients (e.g., Parquet file handler)
+│       └── file_handler.py
+│
+└── requirements.txt
+
+# TODO:
+
+# Add the UK national grid / elexon / whoever ...
+# https://chatgpt.com/c/689a01e2-6ae0-832e-bc69-3caae46a11af

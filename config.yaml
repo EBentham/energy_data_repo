@@ -1,0 +1,64 @@
+﻿logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+storage:
+  bronze_path: "data/bronze"
+  silver_path: "data/silver"
+  gold_path: "data/gold"
+
+dbt:
+  project_dir: "dbt_project"
+
+sources:
+  entsoe:
+    api_key: "${ENTSOE_API_KEY}"
+    base_url: "https://web-api.tp.entsoe.eu/api"
+
+    # --- Reusable Domain Placeholders ---
+    primary_bidding_zone: "10YFR-RTE------C" # Great Britain
+    interconnectors:
+      FR: "10YFR-RTE------C"
+      NL: "10YNL----------L"
+      BE: "10YBE----------2"
+
+    # --- List of specific data queries to run for this source ---
+    queries:
+      - name: "generation_per_type"
+        documentType: "A75"
+        # EXPLICIT: This query requires the 'outBiddingZone_Domain' parameter.
+        domain_params:
+          in_Domain: "${primary_bidding_zone}"
+        params:
+          processType: "A16"
+
+      - name: "total_load"
+        documentType: "A65"
+        # EXPLICIT: This query also requires the 'outBiddingZone_Domain' parameter.
+        domain_params:
+          outBiddingZone_Domain: "${primary_bidding_zone}"
+        params:
+          processType: "A16"
+
+      - name: "day_ahead_prices"
+        documentType: "A44"
+        # EXPLICIT: This query requires both 'in_Domain' and 'out_Domain'.
+        domain_params:
+          in_Domain: "${primary_bidding_zone}"
+          out_Domain: "${primary_bidding_zone}"
+        params: {}
+
+#      - name: "cross_border_flows_fr"
+#        documentType: "A81"
+#        # EXPLICIT: This query requires 'in_Domain' and 'out_Domain' for different zones.
+#        domain_params:
+#          in_Domain: "${interconnectors.FR}" # <-- Note the new placeholder syntax
+#          out_Domain: "${primary_bidding_zone}"
+#        params: {}
+#
+#      - name: "cross_border_flows_nl"
+#        documentType: "A81"
+#        domain_params:
+#          in_Domain: "${interconnectors.NL}"
+#          out_Domain: "${primary_bidding_zone}"
+#        params: {}
