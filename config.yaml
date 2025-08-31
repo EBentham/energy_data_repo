@@ -26,7 +26,6 @@ sources:
     queries:
       - name: "generation_per_type"
         documentType: "A75"
-        # EXPLICIT: This query requires the 'outBiddingZone_Domain' parameter.
         domain_params:
           in_Domain: "${primary_bidding_zone}"
         params:
@@ -34,7 +33,6 @@ sources:
 
       - name: "total_load"
         documentType: "A65"
-        # EXPLICIT: This query also requires the 'outBiddingZone_Domain' parameter.
         domain_params:
           outBiddingZone_Domain: "${primary_bidding_zone}"
         params:
@@ -42,32 +40,27 @@ sources:
 
       - name: "day_ahead_prices"
         documentType: "A44"
-        # EXPLICIT: This query requires both 'in_Domain' and 'out_Domain'.
         domain_params:
           in_Domain: "${primary_bidding_zone}"
           out_Domain: "${primary_bidding_zone}"
         params: {}
 
   elexon:
-      api_key: "${ELEXON_API_KEY}" # Will be loaded from your .env file
-      base_url: "https://api.bmreports.com/BMRS"
+    api_key: "${ELEXON_API_KEY}" # Will be loaded from your .env file (not required for public endpoints)
+    base_url: "https://data.elexon.co.uk/bmrs/api/v1"
+    reports:
+      - name: "actual_aggregated_generation_per_type"
+        code: "B1620"
+        version: "v1"
+        date_param_type: "from_to_date"
+        params:
+          settlementPeriodFrom: 1
+          settlementPeriodTo: 36
 
-      # --- List of specific reports to run for this source ---
-      # Each report has a name, a BMRS report code, a version, and its required params
-      reports:
-
-        # Actual Aggregated Generation Per Type (AGPT / B1620)
-        - name: "actual_aggregated_generation_per_type"
-          code: "B1620"
-          version: "v1"
-          # This report uses a from/to date style
-          date_param_type: "from_to_date"
-          params: {}
-
-        # Actual Total Load (B1610)
-        - name: "actual_total_load"
-          code: "B1610"
-          version: "v1"
-          # This report uses settlement date and period
-          date_param_type: "settlement_date_period"
-          params: {}
+      - name: "actual_total_load"
+        code: "B1610"
+        version: "v1"
+        date_param_type: "settlement_date_period"
+        params:
+          settlementPeriodFrom: 1
+          settlementPeriodTo: 36

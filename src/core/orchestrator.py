@@ -56,15 +56,28 @@ class Orchestrator:
                 logger.error("No connector class found for source '%s' in module '%s'", source_name, module_path)
                 return None
 
-            # Try instantiation with flexible signatures
+            # Instantiate connector robustly based on its constructor signature
             try:
-                instance = connector_class(source_config)
-            except TypeError:
-                try:
+                import inspect
+
+                sig = inspect.signature(connector_class.__init__)
+                # exclude 'self'
+                params = [p for p in sig.parameters.values() if p.name != 'self']
+                # count positional-or-keyword params (exclude var-positional/keyword)
+                pos_params = [p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+
+                if len(pos_params) == 1:
+                    # signature: def __init__(self, config)
+                    instance = connector_class(source_config)
+                elif len(pos_params) >= 2:
+                    # signature: def __init__(self, name, config, ...)
                     instance = connector_class(source_name, source_config)
-                except Exception as e:
-                    logger.error("Failed to instantiate connector %s: %s", connector_class, e, exc_info=True)
-                    return None
+                else:
+                    # fallback
+                    instance = connector_class(source_config)
+            except Exception as e:
+                logger.error("Failed to instantiate connector %s: %s", connector_class, e, exc_info=True)
+                return None
 
             if not isinstance(instance, BaseConnector):
                 logger.error("Connector %s does not implement BaseConnector", connector_class)

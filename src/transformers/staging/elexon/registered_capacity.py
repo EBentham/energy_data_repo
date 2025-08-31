@@ -11,13 +11,14 @@ def create_elexon_registered_capacity_silver(source_bronze_path: str, source_sil
     bronze_report_path = Path(source_bronze_path) / report_name
     silver_report_path = Path(source_silver_path)
 
-    xml_files = list(bronze_report_path.glob("*.xml"))
-    if not xml_files:
+    # Accept both XML and JSON raw payloads
+    raw_files = list(bronze_report_path.glob("*.xml")) + list(bronze_report_path.glob("*.json"))
+    if not raw_files:
         logger.warning(f"No raw files found for '{report_name}'. Skipping.")
         return True
 
     # This report is not time-series, so we expect only one file
-    xml_file = xml_files[0]
+    xml_file = raw_files[0]
     try:
         with open(xml_file, 'r', encoding='utf-8') as f:
             df = parse_registered_capacity(f)
