@@ -1,4 +1,4 @@
-ELT pipleine for UK & European Power Systems Data.
+ELT pipleine for UK & European Power Systems Data. Data is saved into "silver" Parquet files for use in ML models (GAM for energy demand forecasting).
 
 For ENTSOE:
 - day_ahead_prices
