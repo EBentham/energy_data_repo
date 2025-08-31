@@ -26,6 +26,7 @@ class _EntsoeApiClient:
         if not api_key:
             raise ValueError("ENTSO-E API key is required.")
         self.base_url = base_url
+        self.api_key = api_key
         self.session = requests.Session()
         # The security token is added to all requests made with this session
         self.session.params = {'securityToken': api_key}
@@ -65,8 +66,9 @@ class EntsoeConnector(BaseConnector):
 
         # Resolve the API key: check for a placeholder and load from environment variables
         api_key_config = self.config.get('api_key', '')
-        if api_key_config.startswith("${") and api_key_config.endswith("}"):
-            env_var_name = api_key_config.strip("${}")
+        resolved_api_key = None
+        if isinstance(api_key_config, str) and api_key_config.startswith("${") and api_key_config.endswith("}"):
+            env_var_name = api_key_config[2:-1]
             resolved_api_key = os.getenv(env_var_name)
         else:
             resolved_api_key = api_key_config
@@ -123,8 +125,13 @@ class EntsoeConnector(BaseConnector):
         Resolves placeholder values (e.g., "${primary_bidding_zone}") from the
         connector's configuration dictionary. Handles simple and nested keys.
         """
-        # Remove the placeholder syntax, e.g., "${interconnectors.FR}" -> "interconnectors.FR"
-        clean_placeholder = placeholder.strip("${}")
+        if not isinstance(placeholder, str):
+            return ""
+
+        if placeholder.startswith("${") and placeholder.endswith("}"):
+            clean_placeholder = placeholder[2:-1]
+        else:
+            clean_placeholder = placeholder
 
         # Handle nested placeholders by splitting the key string
         keys = clean_placeholder.split('.')
@@ -161,4 +168,18 @@ class EntsoeConnector(BaseConnector):
             if resolved_value:
                 params[param_name] = resolved_value
 
+        return params
+
+    # Public helpers for tests and external use
+    def build_url_for_query(self, query_config: dict) -> str:
+        """Return the base URL to be used for this query (public helper for tests)."""
+        # In ENTSO-E API the endpoint is often the base URL; keep flexibility to
+        # allow per-query overrides in the future
+        return self._client.base_url or self.config.get('base_url')
+
+    def build_params_for_query(self, query_config: dict, query_date: date) -> dict[str, Any]:
+        """Return the fully expanded params for a given query and date (public helper for tests)."""
+        params = self._build_params_for_day(query_config, query_date)
+        # Ensure security token is present in params for testing convenience
+        params['securityToken'] = self._client.api_key
         return params

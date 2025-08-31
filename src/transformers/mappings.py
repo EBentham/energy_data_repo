@@ -1,10 +1,6 @@
-﻿# src/transformers/mappings.py
-
-# This file contains static mapping dictionaries used across different transformers.
+﻿# This file contains static mapping dictionaries used across different transformers.
 # Storing them here makes them easy to manage and reuse.
 
-# Source: ENTSO-E "PSR Type" code list
-# This mapping translates generation source codes to human-readable names.
 ENTSOE_GENERATION_TYPE_MAP = {
     'B01': 'Biomass',
     'B02': 'Fossil Brown coal/Lignite',

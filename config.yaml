@@ -48,17 +48,26 @@ sources:
           out_Domain: "${primary_bidding_zone}"
         params: {}
 
-#      - name: "cross_border_flows_fr"
-#        documentType: "A81"
-#        # EXPLICIT: This query requires 'in_Domain' and 'out_Domain' for different zones.
-#        domain_params:
-#          in_Domain: "${interconnectors.FR}" # <-- Note the new placeholder syntax
-#          out_Domain: "${primary_bidding_zone}"
-#        params: {}
-#
-#      - name: "cross_border_flows_nl"
-#        documentType: "A81"
-#        domain_params:
-#          in_Domain: "${interconnectors.NL}"
-#          out_Domain: "${primary_bidding_zone}"
-#        params: {}
+  elexon:
+      api_key: "${ELEXON_API_KEY}" # Will be loaded from your .env file
+      base_url: "https://api.bmreports.com/BMRS"
+
+      # --- List of specific reports to run for this source ---
+      # Each report has a name, a BMRS report code, a version, and its required params
+      reports:
+
+        # Actual Aggregated Generation Per Type (AGPT / B1620)
+        - name: "actual_aggregated_generation_per_type"
+          code: "B1620"
+          version: "v1"
+          # This report uses a from/to date style
+          date_param_type: "from_to_date"
+          params: {}
+
+        # Actual Total Load (B1610)
+        - name: "actual_total_load"
+          code: "B1610"
+          version: "v1"
+          # This report uses settlement date and period
+          date_param_type: "settlement_date_period"
+          params: {}
